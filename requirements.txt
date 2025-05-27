@@ -7,3 +7,4 @@ pydantic-settings
 passlib[bcrypt]
 requests
 alembic
+python-multipart
