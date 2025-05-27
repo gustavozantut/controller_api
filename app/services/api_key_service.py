@@ -53,11 +53,11 @@ class ApiKeyService:
         if found_key.calls_made >= found_key.call_limit:
             return None  # Limite de chamadas excedido
 
-        # Verifica se a chave expirou
-        if found_key.expires_at and found_key.expires_at < datetime.utcnow():
-            # Opcional: Você pode querer desativar a chave aqui no DB se ela expirou
-            # deactivate_api_key(db, found_key)
-            return None  # Chave expirada
+        # # Verifica se a chave expirou
+        # if found_key.expires_at and found_key.expires_at < datetime.utcnow():
+        #     # Opcional: Você pode querer desativar a chave aqui no DB se ela expirou
+        #     # deactivate_api_key(db, found_key)
+        #     return None  # Chave expirada
 
         # Incrementa o contador de chamadas APENAS SE a chave for válida e autorizada
         increment_api_key_calls(db, found_key)

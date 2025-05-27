@@ -2,6 +2,8 @@ from pydantic import BaseModel, Field
 from typing import Optional
 from datetime import datetime
 
+MAX_CALL_LIMIT_PER_KEY = 100
+
 
 class ApiKeyCreate(BaseModel):
     description: Optional[str] = Field(
@@ -9,8 +11,9 @@ class ApiKeyCreate(BaseModel):
     )
     call_limit: Optional[int] = Field(
         None,
-        ge=0,
-        description="Limite de chamadas para esta chave. Se nulo, usa o padrão do sistema.",
+        ge=1,  # Garante que seja maior ou igual a zero
+        le=MAX_CALL_LIMIT_PER_KEY,  # <--- AQUI: Limite máximo
+        description=f"Limite de chamadas para esta chave (máx: {MAX_CALL_LIMIT_PER_KEY}). Se nulo, usa o padrão do sistema.",
     )
 
 
