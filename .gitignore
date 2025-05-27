@@ -1,0 +1,47 @@
+# Python
+.Python
+__pycache__/
+*.pyc
+*.pyd
+*.pyo
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ipynb_checkpoints/
+.DS_Store # macOS specific
+.env      # Variáveis de ambiente - MUITO IMPORTANTE NÃO COMITAR!
+
+# Ambientes virtuais
+venv/
+.venv/
+env/
+/site/ # Ex: .virtualenvs/site/
+
+# Logs e Dados Gerados (se aplicável)
+*.log
+*.txt     # Se você salva resultados em .txt (como o output do YOLO/OCR)
+*.sqlite3 # Se você usasse SQLite localmente
+data/     # Qualquer diretório de dados gerados
+media/    # Se você tivesse upload de mídia/imagens não processadas
+
+# Arquivos temporários e de build
+*.tmp
+*.bak
+*.swp
+*.swo
+*.orig
+dist/
+build/
+.cache/
+
+# Docker
+.dockerignore               # Sim, é uma boa prática ignorar o próprio .dockerignore se você não quiser versioná-lo, mas geralmente é útil tê-lo.
+.docker/                    # Se tiver diretórios de configuração Docker específicos que não sejam o Dockerfile/docker-compose.yml
+docker-compose.override.yml # Se você usa um arquivo de override para configurações locais
+*.dockerfile                # Se você tem Dockerfiles temporários ou de teste
+
+# Alembic
+# O diretório 'alembic/versions' contém os arquivos de migração gerados,
+# mas geralmente é bom versioná-los para rastrear o histórico do schema do DB.
+# Se você tiver algum arquivo temporário dentro do alembic/versions, pode ignorar aqui:
+alembic/versions/*.pyc
