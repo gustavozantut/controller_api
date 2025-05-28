@@ -27,5 +27,7 @@ class Settings(BaseSettings):
     EZOCR_API_URL: str
     YOLO_OUTPUT_DIR: str
 
+    MAX_TOTAL_API_KEYS: int = 20
+
 
 settings = Settings()

@@ -12,7 +12,7 @@ api_key_service = ApiKeyService()
     "/keys",
     response_model=ApiKeyResponse,
     status_code=status.HTTP_201_CREATED,
-    summary="Gerar uma nova chave de API (APENAS PARA ADMINS!)",
+    summary="Gerar uma nova chave de API",
 )
 def create_new_api_key_endpoint(
     api_key_data: ApiKeyCreate,

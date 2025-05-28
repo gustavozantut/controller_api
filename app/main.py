@@ -3,7 +3,7 @@ from app.api.v1.endpoints import api_keys, plates  # Importe os routers
 
 app = FastAPI(
     title="BRPlates API - Processamento de Placas",
-    description="API para detecção de placas via YOLO e leitura via OCRs, com autenticação por chave de API e limite de chamadas.",
+    description="API para detecção e leitura de placas em imagens, com autenticação por chave de API e limite de chamadas.",
     version="1.0.0",
     # Adicione tags para organizar a documentação Swagger UI
     openapi_tags=[

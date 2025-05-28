@@ -9,6 +9,8 @@ from app.core.security import generate_api_key, get_api_key_hash, verify_api_key
 from app.core.config import settings
 from datetime import datetime
 from app.db.models import ApiKey
+from fastapi import HTTPException, status
+from sqlalchemy import func
 
 
 class ApiKeyService:
@@ -18,6 +20,12 @@ class ApiKeyService:
         """
         Gera uma nova chave de API, armazena seu hash no DB e retorna a chave em texto puro.
         """
+        current_key_count = db.query(func.count(ApiKey.id)).scalar()
+        if current_key_count >= settings.MAX_TOTAL_API_KEYS:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,  # Forbidden ou Conflict
+                detail=f"Limite máximo de {settings.MAX_TOTAL_API_KEYS} chaves de API já atingido. Não é possível gerar mais chaves.",
+            )
         plain_key = generate_api_key(settings.API_KEY_LENGTH)
         key_hash = get_api_key_hash(plain_key)
         db_api_key = create_api_key_db(db, key_hash, api_key_data)
