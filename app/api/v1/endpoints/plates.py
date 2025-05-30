@@ -26,7 +26,7 @@ async def processar_placa(
     api_key_data: ApiKeyInDB = Depends(get_valid_api_key),
 ):
     """
-    Processa uma imagem de entrada para detectar a placa e realizar a leitura OCR.
+    Processa uma imagem de entrada para detectar a placa e realizar a leitura OCR. top_result = raw_result.results[0
     A autenticação é feita via cabeçalho X-API-Key.
     """
     if not file.content_type.startswith("image/"):
@@ -45,7 +45,6 @@ async def processar_placa(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail="Nenhuma placa detectada ou lida na imagem fornecida.",
             )
-
         # Prepara a resposta com a placa principal e alternativas
         top_result = raw_result.results[0]
         placa = top_result.plate
@@ -59,6 +58,8 @@ async def processar_placa(
 
         return {"placa": placa, "alternativas": alternativas}
 
+    except HTTPException as e:  # Captura HTTPExceptions (como o 404 que você levantou)
+        raise e  # Re-lança para que o FastAPI as trate corretamente
     except RuntimeError as e:
         # Captura erros específicos de falha de comunicação com serviços externos
         raise HTTPException(

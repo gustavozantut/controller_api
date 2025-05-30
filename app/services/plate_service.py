@@ -80,6 +80,8 @@ class PlateService:
         file_id = None
         classe_detectada = None
         crop_bytes = None
+        yolo_result_bytes = original_bytes  # Inicializa com a imagem original
+        yolo_detected = False  # Flag para saber se o YOLO detectou algo
 
         # === Etapa 1: Envia imagem ao YOLO ===
         try:
@@ -88,7 +90,11 @@ class PlateService:
                 files={"file": (file.filename, original_bytes, file.content_type)},
                 timeout=30,  # Adicione timeout
             )
-            yolo_resp.raise_for_status()
+            if yolo_resp.status_code == 404:
+                pass
+            elif not yolo_resp.ok:  # Verifica se o status code NÃO é 2xx
+                yolo_resp.raise_for_status()
+
             yolo_json = yolo_resp.json()
 
             crop_path = None
