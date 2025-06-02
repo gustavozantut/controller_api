@@ -50,3 +50,4 @@ db_data/
 
 # Alembic
 alembic/versions/*.pyc
+*.old
