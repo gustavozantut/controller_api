@@ -8,3 +8,4 @@ passlib[bcrypt]
 requests
 alembic
 python-multipart
+gunicorn
