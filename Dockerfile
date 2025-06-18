@@ -3,6 +3,7 @@ FROM python:3.10-slim-buster
 RUN apt-get update && apt-get install -y \
     postgresql-client \
     netcat-traditional \
+    dos2unix \
     && rm -rf /var/lib/apt/lists/*
 # Copia os requisitos e instala
 COPY requirements.txt .
@@ -16,7 +17,8 @@ RUN rm requirements.txt
 
 # Copia o entrypoint.sh e torna-o executável
 COPY ./entrypoint.sh /usr/local/bin/entrypoint.sh
-RUN chmod +x /usr/local/bin/entrypoint.sh
+RUN chmod +x /usr/local/bin/entrypoint.sh \
+    && dos2unix /usr/local/bin/entrypoint.sh
 
 EXPOSE 8000
 
