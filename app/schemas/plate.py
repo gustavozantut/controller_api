@@ -19,3 +19,15 @@ class PlateOCRRawResult(BaseModel):
 class PlateProcessResponse(BaseModel):
     placa: str
     alternativas: List[str] = Field(default_factory=list)
+
+
+class TaskStatusInit(BaseModel):
+    task_id: str
+    status: str = "processing"
+
+
+class TaskStatusResponse(BaseModel):
+    task_id: str
+    status: str
+    placa: Optional[str] = None
+    alternativas: Optional[List[str]] = None

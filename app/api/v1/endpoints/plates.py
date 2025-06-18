@@ -2,11 +2,11 @@ from fastapi import APIRouter, File, UploadFile, Depends, HTTPException, status
 from fastapi.responses import JSONResponse
 
 from app.services.plate_service import PlateService
-from app.schemas.plate import PlateProcessResponse
+from app.schemas.plate import TaskStatusInit, TaskStatusResponse
 from app.core.dependencies import get_valid_api_key
-
-# --> ADICIONE ESTA LINHA DE IMPORTAÇÃO:
 from app.schemas.api_key import ApiKeyInDB  # Importe a classe ApiKeyInDB
+
+from app.celery_app import celery
 
 
 router = APIRouter()
@@ -15,60 +15,67 @@ plate_service = PlateService()
 
 @router.post(
     "/processar-placa",
-    response_model=PlateProcessResponse,
     summary="Processar imagem de placa",
-    description="Recebe uma imagem, detecta a placa via YOLO, e tenta ler a placa com múltiplos serviços OCR. Requer uma chave de API válida no cabeçalho 'X-API-Key'.",
+    description="Envia a imagem para processamento assíncrono via Celery e retorna o task_id.",
+    response_model=TaskStatusResponse,
 )
 async def processar_placa(
-    file: UploadFile = File(
-        ..., description="O arquivo de imagem da placa para processamento."
-    ),
+    file: UploadFile = File(..., description="Imagem da placa"),
     api_key_data: ApiKeyInDB = Depends(get_valid_api_key),
 ):
-    """
-    Processa uma imagem de entrada para detectar a placa e realizar a leitura OCR. top_result = raw_result.results[0
-    A autenticação é feita via cabeçalho X-API-Key.
-    """
     if not file.content_type.startswith("image/"):
         raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Arquivo enviado não é uma imagem válida. Apenas formatos de imagem são aceitos.",
+            status.HTTP_400_BAD_REQUEST,
+            detail="Arquivo enviado não é uma imagem válida.",
         )
 
-    try:
-        # Chama o serviço para processar a imagem
-        raw_result = await plate_service.process_plate_image(file)
+    # Dispara a task Celery e retorna o id da task
+    original_bytes = await file.read()
+    task = plate_service.process_plate_image_task.delay(
+        original_bytes,
+        file.filename,
+        file.content_type,
+        plate_service.YOLO_API_URL,
+        plate_service.OCR_API_URL,
+        plate_service.EZOCR_API_URL,
+        plate_service.YOLO_OUTPUT_DIR,
+    )
 
-        if not raw_result.placa and not raw_result.results:
-            # Se nenhuma placa foi detectada pelos OCRs
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="Nenhuma placa detectada ou lida na imagem fornecida.",
-            )
-        # Prepara a resposta com a placa principal e alternativas
-        top_result = raw_result.results[0]
-        placa = top_result.plate
+    return TaskStatusInit(task_id=task.id, status="processing")
+
+
+@router.get(
+    "/tasks/{task_id}",
+    response_model=TaskStatusResponse,
+    summary="Consulta status e resultado da task de processamento de placa",
+)
+async def get_task_status(task_id: str):
+    async_result = celery.AsyncResult(task_id)
+    if async_result.state == "PENDING":
+        return TaskStatusResponse(task_id=task_id, status="pending")
+    elif async_result.state == "STARTED":
+        return TaskStatusResponse(task_id=task_id, status="started")
+    elif async_result.state == "FAILURE":
+        # Pode retornar a exceção ou mensagem de erro
+        return TaskStatusResponse(task_id=task_id, status="failure")
+    elif async_result.state == "SUCCESS":
+        result = async_result.result  # deve ser dict com placa e alternativas
+        placa = None
         alternativas = []
-        if hasattr(top_result, "candidates") and top_result.candidates:
-            alternativas = [
-                c.get("plate")
-                for c in top_result.candidates
-                if c.get("plate") and c.get("plate") != placa
-            ]
-
-        return {"placa": placa, "alternativas": alternativas}
-
-    except HTTPException as e:  # Captura HTTPExceptions (como o 404 que você levantou)
-        raise e  # Re-lança para que o FastAPI as trate corretamente
-    except RuntimeError as e:
-        # Captura erros específicos de falha de comunicação com serviços externos
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Erro no pipeline de processamento: {str(e)}",
+        if result:
+            placa = result.get("placa")
+            if result.get("results") and len(result["results"]) > 0:
+                top_result = result["results"][0]
+                alternativas = [
+                    c.get("plate")
+                    for c in top_result.get("candidates", [])
+                    if c.get("plate") and c.get("plate") != placa
+                ]
+        return TaskStatusResponse(
+            task_id=task_id,
+            status="success",
+            placa=placa,
+            alternativas=alternativas,
         )
-    except Exception as e:
-        # Captura quaisquer outros erros inesperados
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Ocorreu um erro interno inesperado: {str(e)}",
-        )
+    else:
+        return TaskStatusResponse(task_id=task_id, status=async_result.state.lower())
