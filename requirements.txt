@@ -10,3 +10,4 @@ alembic
 python-multipart
 gunicorn
 celery
+redis
