@@ -9,7 +9,7 @@ COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 RUN rm requirements.txt
 
-#COPY . /controller_api
+COPY . /controller_api
 WORKDIR /controller_api
 # Copia a pasta 'alembic' do seu contexto de build (que é /controller_api/alembic)
 # para /app/alembic dentro do container.
