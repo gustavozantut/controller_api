@@ -1,7 +1,7 @@
 from fastapi import APIRouter, File, UploadFile, Depends, HTTPException, status
 from fastapi.responses import JSONResponse
 
-from app.services.plate_service import PlateService
+from app.services.plate_service import PlateService, process_plate_image_task
 from app.schemas.plate import TaskStatusInit, TaskStatusResponse
 from app.core.dependencies import get_valid_api_key
 from app.schemas.api_key import ApiKeyInDB  # Importe a classe ApiKeyInDB
@@ -31,7 +31,7 @@ async def processar_placa(
 
     # Dispara a task Celery e retorna o id da task
     original_bytes = await file.read()
-    task = plate_service.process_plate_image_task.delay(
+    task = process_plate_image_task.delay(
         original_bytes,
         file.filename,
         file.content_type,

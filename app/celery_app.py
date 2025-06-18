@@ -5,6 +5,7 @@ celery = Celery(
     "controller_api",
     broker=settings.CELERY_BROKER_URL,
     backend=settings.CELERY_RESULT_BACKEND,
+    include=["app.services.task"],
 )
 
 celery.conf.update(
