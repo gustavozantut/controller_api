@@ -1,11 +1,9 @@
 from fastapi import APIRouter, File, UploadFile, Depends, HTTPException, status
 from fastapi.responses import JSONResponse
-
-from app.services.plate_service import PlateService, process_plate_image_task
-from app.schemas.plate import TaskStatusInit, TaskStatusResponse
+from app.services.plate_service import PlateService
+from app.schemas.plate import TaskStatusResponse
 from app.core.dependencies import get_valid_api_key
-from app.schemas.api_key import ApiKeyInDB  # Importe a classe ApiKeyInDB
-
+from app.schemas.api_key import ApiKeyInDB
 from app.celery_app import celery
 
 
@@ -29,19 +27,9 @@ async def processar_placa(
             detail="Arquivo enviado não é uma imagem válida.",
         )
 
-    # Dispara a task Celery e retorna o id da task
-    original_bytes = await file.read()
-    task = process_plate_image_task.delay(
-        original_bytes,
-        file.filename,
-        file.content_type,
-        plate_service.YOLO_API_URL,
-        plate_service.OCR_API_URL,
-        plate_service.EZOCR_API_URL,
-        plate_service.YOLO_OUTPUT_DIR,
-    )
+    result = await plate_service.process_plate_image(file)
 
-    return TaskStatusInit(task_id=task.id, status="processing")
+    return result
 
 
 @router.get(

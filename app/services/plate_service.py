@@ -1,5 +1,5 @@
 from fastapi import UploadFile
-from app.schemas.plate import PlateOCRRawResult
+from app.schemas.plate import TaskStatusInit
 from app.services.task import process_plate_image_task
 from app.core.config import settings
 
@@ -11,7 +11,7 @@ class PlateService:
         self.EZOCR_API_URL = settings.EZOCR_API_URL
         self.YOLO_OUTPUT_DIR = settings.YOLO_OUTPUT_DIR
 
-    async def process_plate_image(self, file: UploadFile) -> PlateOCRRawResult:
+    async def process_plate_image(self, file: UploadFile) -> TaskStatusInit:
         original_bytes = await file.read()
 
         task = process_plate_image_task.delay(
@@ -24,8 +24,7 @@ class PlateService:
             self.YOLO_OUTPUT_DIR,
         )
 
-        return PlateOCRRawResult(
-            placa=None,
-            results=[],
-            task_id=task.id,  # ID da task para o cliente consultar status depois
+        return TaskStatusInit(
+            task_id=task.id,
+            status="processing",
         )
