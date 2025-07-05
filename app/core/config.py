@@ -26,8 +26,6 @@ class Settings(BaseSettings):
     OCR_API_URL: str
     EZOCR_API_URL: str
     YOLO_OUTPUT_DIR: str
-    CELERY_BROKER_URL: str
-    CELERY_RESULT_BACKEND: str
     MAX_TOTAL_API_KEYS: int = 20
 
 
