@@ -1,8 +1,9 @@
 from pydantic import BaseModel, Field
 from typing import Optional
 from datetime import datetime
+from app.core.config import settings
 
-MAX_CALL_LIMIT_PER_KEY = 100
+MAX_CALL_LIMIT_PER_KEY = settings.DEFAULT_CALL_LIMIT
 
 
 class ApiKeyCreate(BaseModel):
