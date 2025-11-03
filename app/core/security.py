@@ -18,7 +18,7 @@ def get_api_key_hash(api_key: str) -> str:
     Cria um hash seguro para uma chave de API em texto puro.
     Este hash será armazenado no banco de dados.
     """
-    return pwd_context.hash(api_key[:72])
+    return pwd_context.hash(api_key)
 
 
 def verify_api_key(plain_api_key: str, hashed_api_key: str) -> bool:
